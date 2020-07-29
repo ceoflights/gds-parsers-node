@@ -1,0 +1,17 @@
+{
+  "name": "gds-parsers-node",
+  "version": "1.0.0",
+  "description": "Library for parsing GDS cryptic/terminal formats",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/mocha/bin/mocha test.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "^8.0.1"
+  },
+  "dependencies": {
+    "moment": "^2.27.0"
+  }
+}
