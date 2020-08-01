@@ -63,7 +63,193 @@ describe('helpers', () => {
 
 describe('lib', () => {
     describe('#parsePriceQuoteItinerary()', () => {
-        it('parse simple Sabre itinerary', () => {
+        it('parse Apollo itinerary with day after tomorrow token', () => {
+            const dump = [
+                ' 1 CZ 328T 21APR LAXCAN HK1  1150P  540A2*      TH/SA   E',
+                ' 2 CZ3203Y 23APR CANXIY HK1   915A 1145A *         SA   E',
+                ' 3 CZ6896Y 24APR XIYDNH UN1   110P  340P *         SU   E',
+                ' 4 CZ6896Y 25APR XIYDNH UN1   110P  340P *         MO   E',
+                ' 5 CZ6885Y 04MAY KHGCAN WK1  1155A  735P *         WE   E',
+                ' 6 CZ6885Y 04MAY KHGCAN TK1  1145A  735P *         WE   E',
+                ' 7 CZ 327Z 04MAY CANLAX HK1   930P  740P *         WE   E',
+            ].join("\n");
+
+            const result = lib.parsePriceQuoteItinerary('apollo', '2020-08-01', dump);
+            assert.deepEqual(result.result, {
+                itinerary: [
+                  {
+                    segmentNumber: '1',
+                    airline: 'CZ',
+                    flightNumber: '328',
+                    bookingClass: 'T',
+                    departureDateRaw: '21APR',
+                    departureAirport: 'LAX',
+                    destinationAirport: 'CAN',
+                    segmentStatus: 'HK1',
+                    departureTimeRaw: '1150P',
+                    destinationTimeRaw: '540A',
+                    destinationDateOffsetToken: '2',
+                    destinationDateOffset: 2,
+                    destinationDate: '2021-04-23',
+                    departureDayOfWeekRaw: 'TH',
+                    destinationDayOfWeekRaw: 'SA',
+                    segmentMarriageId: '',
+                    operatedByString: null,
+                    additionalInfoLines: [],
+                    departureDayOfWeek: 4,
+                    departureDate: '2021-04-21',
+                    departureTime: '23:50',
+                    destinationTime: '05:40'
+                  },
+                  {
+                    segmentNumber: '2',
+                    airline: 'CZ',
+                    flightNumber: '3203',
+                    bookingClass: 'Y',
+                    departureDateRaw: '23APR',
+                    departureAirport: 'CAN',
+                    destinationAirport: 'XIY',
+                    segmentStatus: 'HK1',
+                    departureTimeRaw: '915A',
+                    destinationTimeRaw: '1145A',
+                    destinationDateOffsetToken: '',
+                    destinationDateOffset: 0,
+                    destinationDate: '2021-04-23',
+                    departureDayOfWeekRaw: '',
+                    destinationDayOfWeekRaw: 'SA',
+                    segmentMarriageId: '',
+                    operatedByString: null,
+                    additionalInfoLines: [],
+                    departureDayOfWeek: 6,
+                    departureDate: '2021-04-23',
+                    departureTime: '09:15',
+                    destinationTime: '11:45'
+                  },
+                  {
+                    segmentNumber: '3',
+                    airline: 'CZ',
+                    flightNumber: '6896',
+                    bookingClass: 'Y',
+                    departureDateRaw: '24APR',
+                    departureAirport: 'XIY',
+                    destinationAirport: 'DNH',
+                    segmentStatus: 'UN1',
+                    departureTimeRaw: '110P',
+                    destinationTimeRaw: '340P',
+                    destinationDateOffsetToken: '',
+                    destinationDateOffset: 0,
+                    destinationDate: '2021-04-24',
+                    departureDayOfWeekRaw: '',
+                    destinationDayOfWeekRaw: 'SU',
+                    segmentMarriageId: '',
+                    operatedByString: null,
+                    additionalInfoLines: [],
+                    departureDayOfWeek: 7,
+                    departureDate: '2021-04-24',
+                    departureTime: '13:10',
+                    destinationTime: '15:40'
+                  },
+                  {
+                    segmentNumber: '4',
+                    airline: 'CZ',
+                    flightNumber: '6896',
+                    bookingClass: 'Y',
+                    departureDateRaw: '25APR',
+                    departureAirport: 'XIY',
+                    destinationAirport: 'DNH',
+                    segmentStatus: 'UN1',
+                    departureTimeRaw: '110P',
+                    destinationTimeRaw: '340P',
+                    destinationDateOffsetToken: '',
+                    destinationDateOffset: 0,
+                    destinationDate: '2021-04-25',
+                    departureDayOfWeekRaw: '',
+                    destinationDayOfWeekRaw: 'MO',
+                    segmentMarriageId: '',
+                    operatedByString: null,
+                    additionalInfoLines: [],
+                    departureDayOfWeek: 1,
+                    departureDate: '2021-04-25',
+                    departureTime: '13:10',
+                    destinationTime: '15:40'
+                  },
+                  {
+                    segmentNumber: '5',
+                    airline: 'CZ',
+                    flightNumber: '6885',
+                    bookingClass: 'Y',
+                    departureDateRaw: '04MAY',
+                    departureAirport: 'KHG',
+                    destinationAirport: 'CAN',
+                    segmentStatus: 'WK1',
+                    departureTimeRaw: '1155A',
+                    destinationTimeRaw: '735P',
+                    destinationDateOffsetToken: '',
+                    destinationDateOffset: 0,
+                    destinationDate: '2021-05-04',
+                    departureDayOfWeekRaw: '',
+                    destinationDayOfWeekRaw: 'WE',
+                    segmentMarriageId: '',
+                    operatedByString: null,
+                    additionalInfoLines: [],
+                    departureDayOfWeek: 3,
+                    departureDate: '2021-05-04',
+                    departureTime: '11:55',
+                    destinationTime: '19:35'
+                  },
+                  {
+                    segmentNumber: '6',
+                    airline: 'CZ',
+                    flightNumber: '6885',
+                    bookingClass: 'Y',
+                    departureDateRaw: '04MAY',
+                    departureAirport: 'KHG',
+                    destinationAirport: 'CAN',
+                    segmentStatus: 'TK1',
+                    departureTimeRaw: '1145A',
+                    destinationTimeRaw: '735P',
+                    destinationDateOffsetToken: '',
+                    destinationDateOffset: 0,
+                    destinationDate: '2021-05-04',
+                    departureDayOfWeekRaw: '',
+                    destinationDayOfWeekRaw: 'WE',
+                    segmentMarriageId: '',
+                    operatedByString: null,
+                    additionalInfoLines: [],
+                    departureDayOfWeek: 3,
+                    departureDate: '2021-05-04',
+                    departureTime: '11:45',
+                    destinationTime: '19:35'
+                  },
+                  {
+                    segmentNumber: '7',
+                    airline: 'CZ',
+                    flightNumber: '327',
+                    bookingClass: 'Z',
+                    departureDateRaw: '04MAY',
+                    departureAirport: 'CAN',
+                    destinationAirport: 'LAX',
+                    segmentStatus: 'HK1',
+                    departureTimeRaw: '930P',
+                    destinationTimeRaw: '740P',
+                    destinationDateOffsetToken: '',
+                    destinationDateOffset: 0,
+                    destinationDate: '2021-05-04',
+                    departureDayOfWeekRaw: '',
+                    destinationDayOfWeekRaw: 'WE',
+                    segmentMarriageId: '',
+                    operatedByString: null,
+                    additionalInfoLines: [],
+                    departureDayOfWeek: 3,
+                    departureDate: '2021-05-04',
+                    departureTime: '21:30',
+                    destinationTime: '19:40'
+                  }
+                ]
+              });
+        });
+
+        it('parse Sabre itinerary', () => {
             const dump = [
                 ' 1 VS  26D 15SEP T JFKLHR SS1   815A  810P /DCVS /E',
                 'PLS ENSURE CTC NBRS ARE IN ALL BKGS PLS CALL VS IF PAX HAS REST',
@@ -130,7 +316,7 @@ describe('lib', () => {
               });
         });
 
-        it('parse itinerary with destination date in segment', () => {
+        it('parse Sabre itinerary with destination date in segment', () => {
             const dump = [
                 ' 1 KQ1566H 28JUL Q NBOAMS HK1  1159P  715A  29JUL F',
                 '                                               /DCKQ*Y24K24 /E',

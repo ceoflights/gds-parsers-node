@@ -1,29 +1,30 @@
 const helpers = require('./helpers');
+const moment = require('moment');
 
-/*
- 1 VS  26D 15SEP T JFKLHR SS1   815A  810P /DCVS /E
-PLS ENSURE CTC NBRS ARE IN ALL BKGS PLS CALL VS IF PAX HAS REST
-RICTED MOBILITY
- 2 VS 137D 15OCT Q LHRJFK SS1  1230P  325P /DCVS /E
-PLS ENSURE CTC NBRS ARE IN ALL BKGS PLS CALL VS IF PAX HAS REST
-RICTED MOBILITY
-*/
+/* TODO: add to tests
+ Galileo
 
-/*
-                ' 1 KQ1566H 28JUL Q NBOAMS HK1  1159P  715A  29JUL F',
-                '                                               /DCKQ*Y24K24 /E',
-                'OPERATED BY KLM ROYAL DUTCH AIRLINES',
-                ' 2 AC5949K 29JUL F AMSORD HK1  1105A  105P /DCAC*ARYTWR /E',
-                'OPERATED BY UNITED AIRLINES',
-                ' 3 UA4814K 29JUL F ORDSTL HK1   558P  722P /DCUA*CLK26C /E',
-                'OPERATED BY /GOJET AIRLINES DBA UNITED EXPRESS',
-                'ORD CHECK-IN WITH CHECK IN WITH UNITED TERM 1',
-                ' 4 UA1129K 28SEP W STLORD HK1   250P  418P /DCUA*CLK26C /E',
-                ' 5 AC5954K 28SEP W ORDAMS HK1   555P  920A  29SEP Q',
-                '                                               /DCAC*ARYTWR /E',
-                'OPERATED BY UNITED AIRLINES',
-                ' 6 KQ1565R 29SEP Q AMSNBO HK1  1245P  940P /DCKQ*Y24K24 /E',
-                'OPERATED BY KLM ROYAL DUTCH AIRLINES',
+ 1 SQ  21Z 10SEP EWRSIN SS1  1025A  510P+*      TH/FR   E  1
+ 2 SQ 948Z 11SEP SINDPS SS1   620P  850P *         FR   E  1
+ 3 SQ 949Z 10OCT DPSSIN SS1   945P 1220A+*      SA/SU   E  2
+ 4 SQ  32Z 11OCT SINSFO SS1   925A  940A *         SU   E  2
+
+
+ 1 UA1750Z 15SEP FLLIAD SS1   845A 1105A *         TU   E
+ 2 NH 101Z 15SEP IADHND SS1  1215P  320P+*      TU/WE   E
+ 3 NH6450Z 14OCT NRTIAH SS1   435P  235P *         WE   E
+         OPERATED BY UNITED AIRLINES INC
+ 4 UA1675Z 14OCT IAHFLL SS1   505P  835P *         WE   E
+
+
+ 1 DL9602I 15SEP ORDAMS SS1   400P  645A+*      TU/WE   E
+         OPERATED BY KLM ROYAL DUTCH AIRL
+ 2 KL1601I 16SEP AMSFCO SS1   935A 1150A *         WE   E
+ 3 AF9746D 15OCT FCOBOS SS1   305P  625P *         TH   E
+         OPERATED BY ALITALIA S.P.A
+ 4 DL5863D 15OCT BOSORD SS1   818P 1017P *         TH   E
+         OPERATED BY REPUBLIC AIRWAYS DELTA CONNECTION
+
 */
 
 const parseSabreDayOfWeek = function(token) {
@@ -46,12 +47,113 @@ const parseSabreDayOfWeek = function(token) {
     }
 };
 
-const sabrePriceQuoteItineraryParser = function(dump, baseDate) {
-    // TODO: splitted line
-    const parseAirSegmentLine = function(line) {
-        // TODO: present or missing destination date/day of week. seems like present if differs from departure
-        //segmentNumber,airline,flightNumber,bookingClass,departureDate,departureDayOfWeek,departureAirport,destinationAirport,segmentStatus,departureTime,destinationTime,?confirmationAirline,?confirmationCode,/E???
+const parseTravelportDayOfWeek = function(token) {
+    const mapping = {
+        MO: 1,
+        TU: 2,
+        WE: 3,
+        TH: 4,
+        FR: 5,
+        SA: 6,
+        SU: 7,
+    };
 
+    if (token && mapping.hasOwnProperty(token)) {
+        return mapping[token];
+    } else {
+        return null;
+    }
+};
+
+// Itinerary air segments format seems to be equal between Apollo/Galileo
+const travelportPriceQuoteItineraryParser = function(dump, baseDate) {
+    const parseAirSegmentLine = function(line) {
+        const names = {
+            N: 'segmentNumber',
+            A: 'airline',
+            F: 'flightNumber',
+            B: 'bookingClass',
+            D: 'departureDateRaw',
+            C: 'departureAirport',
+            V: 'destinationAirport',
+            S: 'segmentStatus',
+            T: 'departureTimeRaw',
+            X: 'destinationTimeRaw',
+            P: 'destinationDateOffsetToken',
+            U: 'departureDayOfWeekRaw',
+            I: 'destinationDayOfWeekRaw',
+            M: 'segmentMarriageId',
+        };
+
+        //                                           ' 1 CZ 328T 21APR LAXCAN HK1  1150P  540A2*      TH/SA   E  1
+        const result = helpers.splitByPosition(line, 'NN AAFFFFB DDDDD CCCVVV SSS  TTTTT XXXXXP       UU II      M', names, true);
+        result.operatedByString = null;
+        result.additionalInfoLines = [];
+
+        const isAirlineValid = result.airline.length === 2 && /^[A-Z\d]{2}$/.test(result.airline);
+        const isFlightNumberValid = parseInt(result.flightNumber) > 0;
+        const isValidBookingClass = /^[A-Z]{1}$/.test(result.bookingClass);
+        const isDepartureDateValid = helpers.parseGdsPartialDate(helpers.orDef(result.departureDateRaw, null), baseDate);
+
+        if (isAirlineValid && isFlightNumberValid && isValidBookingClass && isDepartureDateValid) {
+            result.departureDayOfWeek = parseTravelportDayOfWeek(result.departureDayOfWeekRaw ? result.departureDayOfWeekRaw : result.destinationDayOfWeekRaw);
+            result.departureDate = helpers.convertToFullDateInFuture(helpers.parseGdsPartialDate(result.departureDateRaw), baseDate);
+            result.departureTime = helpers.parseGdsTime(result.departureTimeRaw);
+            result.destinationTime = helpers.parseGdsTime(result.destinationTimeRaw);
+            result.destinationDateOffset = helpers.decodeDayOffset(result.destinationDateOffsetToken);
+            result.destinationDate = moment(result.departureDate, 'YYYY-MM-DD').add(result.destinationDateOffset, 'days').format('YYYY-MM-DD');
+
+            return result;
+        } else {
+            return null;
+        }
+    };
+
+    const parseOperatedByLine = function(line) {
+        if (/OPERATED\sBY\s/.test(line)) {
+            return {operatedByString: line.trim()};
+        }
+
+        return null;
+    };
+    
+    const result = {itinerary: []};
+
+    const lines = helpers.splitToLines(dump);
+
+    lines.forEach(line => {
+        const maybeSegment = parseAirSegmentLine(line);
+
+        if (maybeSegment) {
+            result.itinerary.push(maybeSegment);
+            return;
+        }
+
+        const maybeOperated = parseOperatedByLine(line);
+
+        if (maybeOperated) {
+            const lastSegment = result.itinerary.pop();
+            lastSegment.operatedByString = maybeOperated.operatedByString;
+            result.itinerary.push(lastSegment);
+            return;
+        }
+        
+        if (result.itinerary.length > 0) {
+            const lastSegment = result.itinerary.pop();
+            lastSegment.additionalInfoLines.push(line);
+            result.itinerary.push(lastSegment);
+            return;
+        }
+    });
+
+    // TODO: sanity checks and return mkError
+
+    return helpers.mkResult(result);
+};
+
+const sabrePriceQuoteItineraryParser = function(dump, baseDate) {
+
+    const parseAirSegmentLine = function(line) {
         const names = {
             N: 'segmentNumber',
             A: 'airline',
@@ -73,11 +175,9 @@ const sabrePriceQuoteItineraryParser = function(dump, baseDate) {
         const isAirlineValid = result.airline.length === 2 && /^[A-Z\d]{2}$/.test(result.airline);
         const isFlightNumberValid = parseInt(result.flightNumber) > 0;
         const isValidBookingClass = /^[A-Z]{1}$/.test(result.bookingClass);
+        const isDepartureDateValid = helpers.parseGdsPartialDate(helpers.orDef(result.departureDateRaw, null), baseDate);
 
-        // TODO: validating and parsing of dates and times
-        // TODO: parsing destination date if present
-
-        if (isAirlineValid && isFlightNumberValid && isValidBookingClass) {
+        if (isAirlineValid && isFlightNumberValid && isValidBookingClass && isDepartureDateValid) {
             result.departureDayOfWeekRaw = result.departureDayOfWeek;
             result.departureDayOfWeek = parseSabreDayOfWeek(result.departureDayOfWeek);
             result.departureDate = helpers.convertToFullDateInFuture(helpers.parseGdsPartialDate(result.departureDateRaw), baseDate);
@@ -155,11 +255,14 @@ const sabrePriceQuoteItineraryParser = function(dump, baseDate) {
     return helpers.mkResult(result);
 };
 
+// TODO: collection of hacks like missing first space in the first segment line
 exports.parsePriceQuoteItinerary = function(gds, baseDate, dump) {
     if (gds === 'sabre') {
         return sabrePriceQuoteItineraryParser(dump, baseDate);
     } else if (gds === 'galileo') {
-        return exports.mkError('TODO: implement galileo parser');
+        return travelportPriceQuoteItineraryParser(dump, baseDate);
+    } else if (gds === 'apollo') {
+        return travelportPriceQuoteItineraryParser(dump, baseDate);
     } else {
         return exports.mkError('Unsupported GDS - ' + gds);
     }

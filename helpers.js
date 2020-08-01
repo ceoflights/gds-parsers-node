@@ -71,6 +71,20 @@ exports.parseGdsTime = function(token) {
     }
 };
 
+exports.decodeDayOffset = function(token) {
+    if (token == '') {
+        return 0;
+    } else if (token == '|' || token == '+') {
+        return 1;
+    } else if (token == '-') {
+        return -1;
+    } else if (parseInt(token)) {
+        return parseInt(token);
+    } else {
+        return null;
+    }
+};
+
 exports.parseGdsPartialDate = function(token) {
     const matches = token.match(/^(\d{1,2})([A-Z]{3})$/);
 
