@@ -120,7 +120,7 @@ exports.convertToFullDateInFuture = function(date, baseDate) {
             assumedDate = moment([assumedYear.toString(), date.month.toString().padStart(2, '0'), date.day.toString().padStart(2, '0')].join('-')).format('YYYY-MM-DD');
             assumedYear += 1;
         } while (assumedDate < baseDate || !(parseInt(moment(assumedDate).format('MM')) === date.month && parseInt(moment(assumedDate).format('DD')) === date.day))
-        // TODO: make sense of this second clause
+        
         return assumedDate;
     } else {
         return null;
@@ -151,5 +151,24 @@ exports.splitByPosition = function(subject, pattern, names, trim) {
 };
 
 exports.splitToLines = function(string) {
-    return string.split(/\r\n|\n|\r/);
+    if (typeof string === "string") {
+        return string.split(/\r\n|\n|\r/);
+    } else {
+        return null;
+    }
+}
+
+// Agents often miss leading space in the first line when pasting PQs. No harm detecting and fixing it on our side.
+exports.fixFirstSegmentLine = function(string) {
+    if (typeof string === 'string') {
+        const lines = exports.splitToLines(string);
+
+        if (lines.length > 0 && /^\d\s[A-Z\d]/.test(lines[0])) {
+            return ' ' + string;
+        } else {
+            return string;
+        }
+    } else {
+        return null;
+    }
 }

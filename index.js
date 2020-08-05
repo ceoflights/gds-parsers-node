@@ -1,32 +1,6 @@
 const helpers = require('./helpers');
 const moment = require('moment');
 
-/* TODO: add to tests
- Galileo
-
- 1 SQ  21Z 10SEP EWRSIN SS1  1025A  510P+*      TH/FR   E  1
- 2 SQ 948Z 11SEP SINDPS SS1   620P  850P *         FR   E  1
- 3 SQ 949Z 10OCT DPSSIN SS1   945P 1220A+*      SA/SU   E  2
- 4 SQ  32Z 11OCT SINSFO SS1   925A  940A *         SU   E  2
-
-
- 1 UA1750Z 15SEP FLLIAD SS1   845A 1105A *         TU   E
- 2 NH 101Z 15SEP IADHND SS1  1215P  320P+*      TU/WE   E
- 3 NH6450Z 14OCT NRTIAH SS1   435P  235P *         WE   E
-         OPERATED BY UNITED AIRLINES INC
- 4 UA1675Z 14OCT IAHFLL SS1   505P  835P *         WE   E
-
-
- 1 DL9602I 15SEP ORDAMS SS1   400P  645A+*      TU/WE   E
-         OPERATED BY KLM ROYAL DUTCH AIRL
- 2 KL1601I 16SEP AMSFCO SS1   935A 1150A *         WE   E
- 3 AF9746D 15OCT FCOBOS SS1   305P  625P *         TH   E
-         OPERATED BY ALITALIA S.P.A
- 4 DL5863D 15OCT BOSORD SS1   818P 1017P *         TH   E
-         OPERATED BY REPUBLIC AIRWAYS DELTA CONNECTION
-
-*/
-
 const parseSabreDayOfWeek = function(token) {
     const mapping = {
         M: 1,
@@ -119,6 +93,8 @@ const travelportPriceQuoteItineraryParser = function(dump, baseDate) {
     
     const result = {itinerary: []};
 
+    const unparsedLines = [];
+
     const lines = helpers.splitToLines(dump);
 
     lines.forEach(line => {
@@ -144,11 +120,17 @@ const travelportPriceQuoteItineraryParser = function(dump, baseDate) {
             result.itinerary.push(lastSegment);
             return;
         }
+
+        unparsedLines.push(line);
     });
 
-    // TODO: sanity checks and return mkError
-
-    return helpers.mkResult(result);
+    if (unparsedLines.length > 0) {
+        return helpers.mkError(result.unparsedLines.map(l => {
+            return 'Cannot parse line [' + l + ']';
+        }));
+    } else {
+        return helpers.mkResult(result);
+    }
 };
 
 const sabrePriceQuoteItineraryParser = function(dump, baseDate) {
@@ -216,6 +198,8 @@ const sabrePriceQuoteItineraryParser = function(dump, baseDate) {
     
     const result = {itinerary: []};
 
+    const unparsedLines = [];
+
     const lines = helpers.splitToLines(dump);
 
     lines.forEach(line => {
@@ -248,15 +232,26 @@ const sabrePriceQuoteItineraryParser = function(dump, baseDate) {
             result.itinerary.push(lastSegment);
             return;
         }
+
+        unparsedLines.push(line);
     });
 
-    // TODO: sanity checks and return mkError
-
-    return helpers.mkResult(result);
+    if (unparsedLines.length > 0) {
+        return helpers.mkError(result.unparsedLines.map(l => {
+            return 'Cannot parse line [' + l + ']';
+        }));
+    } else {
+        return helpers.mkResult(result);
+    }
 };
 
-// TODO: collection of hacks like missing first space in the first segment line
+const preprocessPastedPqDump = function(gds, baseDate, dump) {
+    return helpers.fixFirstSegmentLine(dump);
+};
+
 exports.parsePriceQuoteItinerary = function(gds, baseDate, dump) {
+    dump = preprocessPastedPqDump(gds, baseDate, dump);
+
     if (gds === 'sabre') {
         return sabrePriceQuoteItineraryParser(dump, baseDate);
     } else if (gds === 'galileo') {
