@@ -5,7 +5,7 @@ exports.mkResult = function(result) {
 };
 
 exports.mkError = function(errors) {
-    if (!errors.isArray()) {
+    if (!Array.isArray(errors)) {
         return {success: false, errors: [errors]};
     } else {
         return {success: false, errors: errors};

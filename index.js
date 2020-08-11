@@ -68,8 +68,9 @@ const travelportPriceQuoteItineraryParser = function(dump, baseDate) {
         const isFlightNumberValid = parseInt(result.flightNumber) > 0;
         const isValidBookingClass = /^[A-Z]{1}$/.test(result.bookingClass);
         const isDepartureDateValid = helpers.parseGdsPartialDate(helpers.orDef(result.departureDateRaw, null), baseDate);
+        const areAirportsValid = /^[A-Z]{3}$/.test(result.departureAirport) && /^[A-Z]{3}$/.test(result.destinationAirport);
 
-        if (isAirlineValid && isFlightNumberValid && isValidBookingClass && isDepartureDateValid) {
+        if (isAirlineValid && isFlightNumberValid && isValidBookingClass && isDepartureDateValid && areAirportsValid) {
             result.departureDayOfWeek = parseTravelportDayOfWeek(result.departureDayOfWeekRaw ? result.departureDayOfWeekRaw : result.destinationDayOfWeekRaw);
             result.departureDate = helpers.convertToFullDateInFuture(helpers.parseGdsPartialDate(result.departureDateRaw), baseDate);
             result.departureTime = helpers.parseGdsTime(result.departureTimeRaw);
@@ -107,10 +108,13 @@ const travelportPriceQuoteItineraryParser = function(dump, baseDate) {
 
         const maybeOperated = parseOperatedByLine(line);
 
-        if (maybeOperated) {
+        if (maybeOperated && result.itinerary.length > 0) {
             const lastSegment = result.itinerary.pop();
             lastSegment.operatedByString = maybeOperated.operatedByString;
             result.itinerary.push(lastSegment);
+            return;
+        } else if (maybeOperated) {
+            unparsedLines.push(line);
             return;
         }
         
@@ -125,7 +129,7 @@ const travelportPriceQuoteItineraryParser = function(dump, baseDate) {
     });
 
     if (unparsedLines.length > 0) {
-        return helpers.mkError(result.unparsedLines.map(l => {
+        return helpers.mkError(result.unparsedLines = unparsedLines.map(l => {
             return 'Cannot parse line [' + l + ']';
         }));
     } else {
@@ -158,8 +162,9 @@ const sabrePriceQuoteItineraryParser = function(dump, baseDate) {
         const isFlightNumberValid = parseInt(result.flightNumber) > 0;
         const isValidBookingClass = /^[A-Z]{1}$/.test(result.bookingClass);
         const isDepartureDateValid = helpers.parseGdsPartialDate(helpers.orDef(result.departureDateRaw, null), baseDate);
+        const areAirportsValid = /^[A-Z]{3}$/.test(result.departureAirport) && /^[A-Z]{3}$/.test(result.destinationAirport);
 
-        if (isAirlineValid && isFlightNumberValid && isValidBookingClass && isDepartureDateValid) {
+        if (isAirlineValid && isFlightNumberValid && isValidBookingClass && isDepartureDateValid && areAirportsValid) {
             result.departureDayOfWeekRaw = result.departureDayOfWeek;
             result.departureDayOfWeek = parseSabreDayOfWeek(result.departureDayOfWeek);
             result.departureDate = helpers.convertToFullDateInFuture(helpers.parseGdsPartialDate(result.departureDateRaw), baseDate);
@@ -212,10 +217,13 @@ const sabrePriceQuoteItineraryParser = function(dump, baseDate) {
 
         const maybeOperated = parseOperatedByLine(line);
 
-        if (maybeOperated) {
+        if (maybeOperated && result.itinerary.length > 0) {
             const lastSegment = result.itinerary.pop();
             lastSegment.operatedByString = maybeOperated.operatedByString;
             result.itinerary.push(lastSegment);
+            return;
+        } else if (maybeOperated) {
+            unparsedLines.push(line);
             return;
         }
 
@@ -237,7 +245,7 @@ const sabrePriceQuoteItineraryParser = function(dump, baseDate) {
     });
 
     if (unparsedLines.length > 0) {
-        return helpers.mkError(result.unparsedLines.map(l => {
+        return helpers.mkError(result.unparsedLines = unparsedLines.map(l => {
             return 'Cannot parse line [' + l + ']';
         }));
     } else {

@@ -866,5 +866,35 @@ describe('lib', () => {
                 ]
               });
         });
+
+        it('return error if incorrect GDS is passed (sabre parser)', () => {
+            const dump = [
+                ' 1 CZ 328T 11APR LAXCAN HK1  1150P  540A2*      TH/SA   E',
+                'OPERATED BY UNITED AIRLINES',
+                ' 2 CZ3203Y 15APR CANXIY HK1   915A 1145A *         SA   E',
+                ' 3 CZ6896Y 24APR XIYDNH HK1   110P  340P *         SU   E',
+                ' 5 CZ6885Y 04MAY DNHCAN HK1  1155A  735P *         WE   E',
+            ].join("\n");
+
+            const result = lib.parsePriceQuoteItinerary('sabre', '2020-08-11', dump);
+
+            assert.equal(result.success, false);
+        });
+
+        it('return error if incorrect GDS is passed (galileo parser)', () => {
+            const dump = [
+                ' 1 VS  26D 15SEP T JFKLHR SS1   815A  810P /DCVS /E',
+                'PLS ENSURE CTC NBRS ARE IN ALL BKGS PLS CALL VS IF PAX HAS REST',
+                'RICTED MOBILITY',
+                'OPERATED BY UNITED AIRLINES',
+                ' 2 VS 137D 15OCT Q LHRJFK SS1  1230P  325P /DCVS /E',
+                'PLS ENSURE CTC NBRS ARE IN ALL BKGS PLS CALL VS IF PAX HAS REST',
+                'RICTED MOBILITY',
+            ].join("\n");
+
+            const result = lib.parsePriceQuoteItinerary('galileo', '2020-08-11', dump);
+
+            assert.equal(result.success, false);
+        });
     });
 });
