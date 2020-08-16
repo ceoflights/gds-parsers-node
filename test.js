@@ -1,3 +1,5 @@
+"use strict";
+
 const lib = require('./index');
 const helpers = require('./helpers');
 
@@ -46,9 +48,9 @@ describe('helpers', () => {
     describe('#convertToFullDateInFuture()', () => {
         it('converts partial date to full date in future', () => {
             assert.equal(helpers.convertToFullDateInFuture('GARBAGE'), null);
-            assert.equal(helpers.convertToFullDateInFuture({month: 05, day: 23}, '2020-07-25'), '2021-05-23');
-            assert.equal(helpers.convertToFullDateInFuture({month: 05, day: 23}, '2020-05-23'), '2020-05-23');
-            assert.equal(helpers.convertToFullDateInFuture({month: 05, day: 23}, '2020-03-23'), '2020-05-23');
+            assert.equal(helpers.convertToFullDateInFuture({month: 5, day: 23}, '2020-07-25'), '2021-05-23');
+            assert.equal(helpers.convertToFullDateInFuture({month: 5, day: 23}, '2020-05-23'), '2020-05-23');
+            assert.equal(helpers.convertToFullDateInFuture({month: 5, day: 23}, '2020-03-23'), '2020-05-23');
         });
     });
 

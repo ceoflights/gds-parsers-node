@@ -1,3 +1,5 @@
+"use strict";
+
 const helpers = require('./helpers');
 const moment = require('moment');
 
