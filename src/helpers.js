@@ -82,6 +82,10 @@ exports.decodeDayOffset = function(token) {
         return -1;
     } else if (parseInt(token)) {
         return parseInt(token);
+    } else if (token == '#') { // Galileo
+        return 1;
+    } else if (token == '*') { // Galileo
+        return 2;
     } else {
         return null;
     }
@@ -146,7 +150,7 @@ exports.splitByPosition = function(subject, pattern, names, trim) {
 
     Object.keys(names).forEach((markerChar) => {
         const name = names[markerChar];
-        result[name] = trim ? letters[markerChar].trim() : letters[markerChar];
+        result[name] = trim ? exports.orDef(letters[markerChar], '').trim() : letters[markerChar];
     });
 
     return result;
@@ -165,7 +169,7 @@ exports.fixFirstSegmentLine = function(string) {
     if (typeof string === 'string') {
         const lines = exports.splitToLines(string);
 
-        if (lines.length > 0 && /^\d\s[A-Z\d]/.test(lines[0])) {
+        if (lines.length > 0 && /^\d(\s|\.\s)[A-Z\d]/.test(lines[0])) {
             return ' ' + string;
         } else {
             return string;
@@ -174,3 +178,41 @@ exports.fixFirstSegmentLine = function(string) {
         return null;
     }
 }
+
+exports.parseTravelportDayOfWeek = function(token) {
+    const mapping = {
+        MO: 1,
+        TU: 2,
+        WE: 3,
+        TH: 4,
+        FR: 5,
+        SA: 6,
+        SU: 7,
+    };
+
+    if (token && mapping.hasOwnProperty(token)) {
+        return mapping[token];
+    } else {
+        return null;
+    }
+};
+
+exports.parseSabreDayOfWeek = function(token) {
+    const mapping = {
+        M: 1,
+        T: 2,
+        W: 3,
+        Q: 4,
+        F: 5,
+        J: 6,
+        S: 7,
+    };
+
+    if (token && /^\d$/.test(token)) {
+        return token;
+    } else if (token && mapping.hasOwnProperty(token)) {
+        return mapping[token];
+    } else {
+        return null;
+    }
+};

@@ -1,128 +1,13 @@
 "use strict";
 
-const lib = require('./index');
-const helpers = require('./helpers');
+const root = require('app-root-path');
+const lib = require(`${root}/index`);
 
-var assert = require('assert');
-
-describe('helpers', () => {
-    describe('#splitByPosition()', () => {
-        it('simple split to four groups', () => {
-            const result = helpers.splitByPosition(' 1 DL 789H', 'NN AAFFFFB', {N: 'segmentNumber', A: 'airline', F: 'flightNumber', B: 'bookingClass'}, true);
-
-            assert.equal(result.flightNumber, '789');
-            assert.equal(result.segmentNumber, '1');
-            assert.equal(result.airline, 'DL');
-            assert.equal(result.bookingClass, 'H');
-        });
-    });
-
-    describe('#splitToLines()', () => {
-        it('split string to lines', () => {
-            const result = helpers.splitToLines("TEST1\nOLOLOLO\nTEST2");
-
-            assert.equal(result.length, 3);
-            assert.equal(result[1], 'OLOLOLO');
-        });
-
-        it('returns null if passed value isn\'t a string', () => {
-            assert.equal(helpers.splitToLines({}), null);
-        });
-    });
-
-    describe('#parseGdsPartialDate()', () => {
-        it('parses partial dates', () => {
-            assert.deepEqual(helpers.parseGdsPartialDate('23MAR'), {raw: '23MAR', day: 23, month: 3});
-            assert.deepEqual(helpers.parseGdsPartialDate('03MAR'), {raw: '03MAR', day: 3, month: 3});
-            assert.deepEqual(helpers.parseGdsPartialDate('3MAR'), {raw: '3MAR', day: 3, month: 3});
-        })
-
-        it('returns null in case it cannot parse date', () => {
-            assert.equal(helpers.parseGdsPartialDate('23mar'), null);
-            assert.equal(helpers.parseGdsPartialDate('23MAR '), null);
-            assert.equal(helpers.parseGdsPartialDate(' 23MAR '), null);
-            assert.equal(helpers.parseGdsPartialDate(' 23MAR'), null);
-        });
-    });
-
-    describe('#convertToFullDateInFuture()', () => {
-        it('converts partial date to full date in future', () => {
-            assert.equal(helpers.convertToFullDateInFuture('GARBAGE'), null);
-            assert.equal(helpers.convertToFullDateInFuture({month: 5, day: 23}, '2020-07-25'), '2021-05-23');
-            assert.equal(helpers.convertToFullDateInFuture({month: 5, day: 23}, '2020-05-23'), '2020-05-23');
-            assert.equal(helpers.convertToFullDateInFuture({month: 5, day: 23}, '2020-03-23'), '2020-05-23');
-        });
-    });
-
-    describe('#parseGdsTime()', () => {
-        it('parses 24h GDS time format', () => {
-            assert.equal(helpers.parseGdsTime('1536'), '15:36');
-        });
-
-        it('parses 12h GDS time format', () => {
-            assert.equal(helpers.parseGdsTime('435P'), '16:35');
-        });
-    });
-
-    describe('#fixFirstSegmentLine()', () => {
-        it('doesn\'t make any changes to the correct dump', () => {
-            const dump = [
-                ' 1 CZ 328T 21APR LAXCAN HK1  1150P  540A2*      TH/SA   E',
-                ' 2 CZ3203Y 23APR CANXIY HK1   915A 1145A *         SA   E',
-                ' 3 CZ6896Y 24APR XIYDNH UN1   110P  340P *         SU   E',
-                ' 4 CZ6896Y 25APR XIYDNH UN1   110P  340P *         MO   E',
-                ' 5 CZ6885Y 04MAY KHGCAN WK1  1155A  735P *         WE   E',
-                ' 6 CZ6885Y 04MAY KHGCAN TK1  1145A  735P *         WE   E',
-                ' 7 CZ 327Z 04MAY CANLAX HK1   930P  740P *         WE   E',
-            ].join("\n");
-
-            assert.equal(helpers.fixFirstSegmentLine(dump), dump);
-        });
-
-        it('prepends space in case it was missing', () => {
-            const dump = [
-                '1 CZ 328T 21APR LAXCAN HK1  1150P  540A2*      TH/SA   E',
-                ' 2 CZ3203Y 23APR CANXIY HK1   915A 1145A *         SA   E',
-                ' 3 CZ6896Y 24APR XIYDNH UN1   110P  340P *         SU   E',
-                ' 4 CZ6896Y 25APR XIYDNH UN1   110P  340P *         MO   E',
-                ' 5 CZ6885Y 04MAY KHGCAN WK1  1155A  735P *         WE   E',
-                ' 6 CZ6885Y 04MAY KHGCAN TK1  1145A  735P *         WE   E',
-                ' 7 CZ 327Z 04MAY CANLAX HK1   930P  740P *         WE   E',
-            ].join("\n");
-
-            assert.equal(helpers.fixFirstSegmentLine(dump), ' ' + dump);
-        });
-
-        it('doesn\'t get fooled by segment numbers starting from 10+', () => {
-            const dump = [
-                '10 CZ 328T 21APR LAXCAN HK1  1150P  540A2*      TH/SA   E',
-                ' 2 CZ3203Y 23APR CANXIY HK1   915A 1145A *         SA   E',
-                ' 3 CZ6896Y 24APR XIYDNH UN1   110P  340P *         SU   E',
-                ' 4 CZ6896Y 25APR XIYDNH UN1   110P  340P *         MO   E',
-                ' 5 CZ6885Y 04MAY KHGCAN WK1  1155A  735P *         WE   E',
-                ' 6 CZ6885Y 04MAY KHGCAN TK1  1145A  735P *         WE   E',
-                ' 7 CZ 327Z 04MAY CANLAX HK1   930P  740P *         WE   E',
-            ].join("\n");
-
-            assert.equal(helpers.fixFirstSegmentLine(dump), dump);
-        });
-
-        it('doesn\'t make any changes to the empty string', () => {
-            assert.equal(helpers.fixFirstSegmentLine(''), '');
-        });
-
-        it('returns null if passed value isn\'t a string', () => {
-            assert.equal(helpers.fixFirstSegmentLine(null), null);
-            assert.equal(helpers.fixFirstSegmentLine(undefined), null);
-            assert.deepEqual(helpers.fixFirstSegmentLine({}), null);
-            assert.deepEqual(helpers.fixFirstSegmentLine([1, 2, 3]), null);
-        });
-    });
-});
+const assert = require('assert');
 
 describe('lib', () => {
     describe('#parsePriceQuoteItinerary()', () => {
-        it('parse Galileo itinerary', () => {
+        it('parse Apollo itinerary', () => {
 
             const dump = [
                 ' 1 SQ  21Z 10SEP EWRSIN SS1  1025A  510P+*      TH/FR   E  1',
@@ -131,7 +16,7 @@ describe('lib', () => {
                 ' 4 SQ  32Z 11OCT SINSFO SS1   925A  940A *         SU   E  2',
             ].join("\n");
 
-            const result = lib.parsePriceQuoteItinerary('galileo', '2020-08-05', dump);
+            const result = lib.parsePriceQuoteItinerary('apollo', '2020-08-05', dump);
 
             assert.deepEqual(result.result, {
                 "itinerary": [
@@ -235,7 +120,7 @@ describe('lib', () => {
             });
         });
 
-        it('parse Galileo itinerary with OPERATED BY', () => {
+        it('parse Apollo itinerary with OPERATED BY', () => {
             const dump = [
                 ' 1 UA1750Z 15SEP FLLIAD SS1   845A 1105A *         TU   E',
                 ' 2 NH 101Z 15SEP IADHND SS1  1215P  320P+*      TU/WE   E',
@@ -244,7 +129,7 @@ describe('lib', () => {
                 ' 4 UA1675Z 14OCT IAHFLL SS1   505P  835P *         WE   E',
             ].join("\n");
 
-            const result = lib.parsePriceQuoteItinerary('galileo', '2020-08-05', dump);
+            const result = lib.parsePriceQuoteItinerary('apollo', '2020-08-05', dump);
 
             assert.deepEqual(result.result, {
                 "itinerary": [
@@ -350,6 +235,121 @@ describe('lib', () => {
 
         it('parse Galileo itinerary with missing space in the first line', () => {
             const dump = [
+                '1. DL 9602 I  15SEP ORDAMS SS1   400P # 645A O          TU  1',
+                '     OPERATED BY KLM ROYAL DUTCH AIRL',
+                ' 2. KL 1601 I  16SEP AMSFCO SS1   935A  1150A O          WE  ',
+                ' 3. AF 9746 D  15OCT FCOBOS SS1   305P   625P O          TH  ',
+                '     OPERATED BY ALITALIA S.P.A',
+                ' 4. DL 5863 D  15OCT BOSORD SS1   818P  1017P O          TH  1',
+                '     OPERATED BY REPUBLIC AIRWAYS DELTA CONNECTION',
+            ].join("\n");
+
+            const result = lib.parsePriceQuoteItinerary('galileo', '2020-08-05', dump);
+
+            assert.deepEqual(result.result, {
+                "itinerary": [
+                    {
+                        "segmentNumber": "1",
+                        "airline": "DL",
+                        "flightNumber": "9602",
+                        "bookingClass": "I",
+                        "departureDateRaw": "15SEP",
+                        "departureAirport": "ORD",
+                        "destinationAirport": "AMS",
+                        "segmentStatus": "SS1",
+                        "departureTimeRaw": "400P",
+                        "destinationTimeRaw": "645A",
+                        "destinationDateOffsetToken": "#",
+                        "departureDayOfWeekRaw": "TU",
+                        "destinationDayOfWeekRaw": "",
+                        "segmentMarriageId": "1",
+                        "operatedByString": "OPERATED BY KLM ROYAL DUTCH AIRL",
+                        "additionalInfoLines": [],
+                        "departureDayOfWeek": 2,
+                        "departureDate": "2020-09-15",
+                        "departureTime": "16:00",
+                        "destinationTime": "06:45",
+                        "destinationDateOffset": 1,
+                        "destinationDate": "2020-09-16"
+                    },
+                    {
+                        "segmentNumber": "2",
+                        "airline": "KL",
+                        "flightNumber": "1601",
+                        "bookingClass": "I",
+                        "departureDateRaw": "16SEP",
+                        "departureAirport": "AMS",
+                        "destinationAirport": "FCO",
+                        "segmentStatus": "SS1",
+                        "departureTimeRaw": "935A",
+                        "destinationTimeRaw": "1150A",
+                        "destinationDateOffsetToken": "",
+                        "departureDayOfWeekRaw": "WE",
+                        "destinationDayOfWeekRaw": "",
+                        "segmentMarriageId": "",
+                        "operatedByString": null,
+                        "additionalInfoLines": [],
+                        "departureDayOfWeek": 3,
+                        "departureDate": "2020-09-16",
+                        "departureTime": "09:35",
+                        "destinationTime": "11:50",
+                        "destinationDateOffset": 0,
+                        "destinationDate": "2020-09-16"
+                    },
+                    {
+                        "segmentNumber": "3",
+                        "airline": "AF",
+                        "flightNumber": "9746",
+                        "bookingClass": "D",
+                        "departureDateRaw": "15OCT",
+                        "departureAirport": "FCO",
+                        "destinationAirport": "BOS",
+                        "segmentStatus": "SS1",
+                        "departureTimeRaw": "305P",
+                        "destinationTimeRaw": "625P",
+                        "destinationDateOffsetToken": "",
+                        "departureDayOfWeekRaw": "TH",
+                        "destinationDayOfWeekRaw": "",
+                        "segmentMarriageId": "",
+                        "operatedByString": "OPERATED BY ALITALIA S.P.A",
+                        "additionalInfoLines": [],
+                        "departureDayOfWeek": 4,
+                        "departureDate": "2020-10-15",
+                        "departureTime": "15:05",
+                        "destinationTime": "18:25",
+                        "destinationDateOffset": 0,
+                        "destinationDate": "2020-10-15"
+                    },
+                    {
+                        "segmentNumber": "4",
+                        "airline": "DL",
+                        "flightNumber": "5863",
+                        "bookingClass": "D",
+                        "departureDateRaw": "15OCT",
+                        "departureAirport": "BOS",
+                        "destinationAirport": "ORD",
+                        "segmentStatus": "SS1",
+                        "departureTimeRaw": "818P",
+                        "destinationTimeRaw": "1017P",
+                        "destinationDateOffsetToken": "",
+                        "departureDayOfWeekRaw": "TH",
+                        "destinationDayOfWeekRaw": "",
+                        "segmentMarriageId": "1",
+                        "operatedByString": "OPERATED BY REPUBLIC AIRWAYS DELTA CONNECTION",
+                        "additionalInfoLines": [],
+                        "departureDayOfWeek": 4,
+                        "departureDate": "2020-10-15",
+                        "departureTime": "20:18",
+                        "destinationTime": "22:17",
+                        "destinationDateOffset": 0,
+                        "destinationDate": "2020-10-15"
+                    }
+                ]
+            });
+        });
+
+        it('parse Apollo itinerary with missing space in the first line', () => {
+            const dump = [
                 '1 DL9602I 15SEP ORDAMS SS1   400P  645A+*      TU/WE   E',
                 '     OPERATED BY KLM ROYAL DUTCH AIRL',
                 ' 2 KL1601I 16SEP AMSFCO SS1   935A 1150A *         WE   E',
@@ -359,7 +359,7 @@ describe('lib', () => {
                 '     OPERATED BY REPUBLIC AIRWAYS DELTA CONNECTION',
             ].join("\n");
 
-            const result = lib.parsePriceQuoteItinerary('galileo', '2020-08-05', dump);
+            const result = lib.parsePriceQuoteItinerary('apollo', '2020-08-05', dump);
 
             assert.deepEqual(result.result, {
                 "itinerary": [

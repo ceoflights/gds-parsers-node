@@ -4,7 +4,7 @@
   "description": "Library for parsing GDS cryptic/terminal formats",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha test.js"
+    "test": "./node_modules/mocha/bin/mocha tests/**/*.js"
   },
   "author": "",
   "license": "ISC",
@@ -12,6 +12,7 @@
     "mocha": "^8.1.1"
   },
   "dependencies": {
+    "app-root-path": "^3.0.0",
     "moment": "^2.27.0"
   }
 }
