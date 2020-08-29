@@ -11,6 +11,7 @@ Object.assign(parsers.apollo, require('./src/parsers/apollo/price-quote-parser')
 Object.assign(parsers.apollo, require('./src/parsers/apollo/service-info-parser'));
 
 Object.assign(parsers.sabre, require('./src/parsers/sabre/price-quote-parser'));
+Object.assign(parsers.sabre, require('./src/parsers/sabre/service-info-parser'));
 
 Object.assign(parsers.galileo, require('./src/parsers/galileo/price-quote-parser'));
 
