@@ -216,6 +216,6 @@ describe('Apollo ServiceInfoParser', () => {
             }
         ];
 
-        assert.deepEqual(lib.parsers.apollo.ServiceInfoParser.parse(dump), result);
+        assert.deepEqual(lib.parsers.apollo.ServiceInfoParser.parse(dump).segments, result);
     });
 });

@@ -233,6 +233,121 @@ describe('lib', () => {
             });
         });
 
+        it('parse Galileo itinerary', () => {
+            const dump = [
+                ' 1. ET  509 M  20MAR EWRADD HK1   915P # 935P O*         TU  1',
+                ' 2. ET  921 M  22MAR ADDACC HK1   840A  1120A O*         TH  1',
+                ' 3. SA  209 M  15APR ACCIAD HK1  1135P # 625A O*         SU',
+                ' 4. SA 7416 Y  16APR IADLAX HK1   833A  1112A O*         MO',
+            ].join("\n");
+
+            const result = {
+                "success": true,
+                "result": {
+                    "itinerary": [
+                        {
+                            "segmentNumber": "1",
+                            "airline": "ET",
+                            "flightNumber": "509",
+                            "bookingClass": "M",
+                            "departureDateRaw": "20MAR",
+                            "departureAirport": "EWR",
+                            "destinationAirport": "ADD",
+                            "segmentStatus": "HK1",
+                            "departureTimeRaw": "915P",
+                            "destinationTimeRaw": "935P",
+                            "destinationDateOffsetToken": "#",
+                            "departureDayOfWeekRaw": "TU",
+                            "destinationDayOfWeekRaw": "",
+                            "segmentMarriageId": "1",
+                            "operatedByString": null,
+                            "additionalInfoLines": [],
+                            "departureDayOfWeek": 2,
+                            "departureDate": "2021-03-20",
+                            "departureTime": "21:15",
+                            "destinationTime": "21:35",
+                            "destinationDateOffset": 1,
+                            "destinationDate": "2021-03-21"
+                        },
+                        {
+                            "segmentNumber": "2",
+                            "airline": "ET",
+                            "flightNumber": "921",
+                            "bookingClass": "M",
+                            "departureDateRaw": "22MAR",
+                            "departureAirport": "ADD",
+                            "destinationAirport": "ACC",
+                            "segmentStatus": "HK1",
+                            "departureTimeRaw": "840A",
+                            "destinationTimeRaw": "1120A",
+                            "destinationDateOffsetToken": "",
+                            "departureDayOfWeekRaw": "TH",
+                            "destinationDayOfWeekRaw": "",
+                            "segmentMarriageId": "1",
+                            "operatedByString": null,
+                            "additionalInfoLines": [],
+                            "departureDayOfWeek": 4,
+                            "departureDate": "2021-03-22",
+                            "departureTime": "08:40",
+                            "destinationTime": "11:20",
+                            "destinationDateOffset": 0,
+                            "destinationDate": "2021-03-22"
+                        },
+                        {
+                            "segmentNumber": "3",
+                            "airline": "SA",
+                            "flightNumber": "209",
+                            "bookingClass": "M",
+                            "departureDateRaw": "15APR",
+                            "departureAirport": "ACC",
+                            "destinationAirport": "IAD",
+                            "segmentStatus": "HK1",
+                            "departureTimeRaw": "1135P",
+                            "destinationTimeRaw": "625A",
+                            "destinationDateOffsetToken": "#",
+                            "departureDayOfWeekRaw": "SU",
+                            "destinationDayOfWeekRaw": "",
+                            "segmentMarriageId": "",
+                            "operatedByString": null,
+                            "additionalInfoLines": [],
+                            "departureDayOfWeek": 7,
+                            "departureDate": "2021-04-15",
+                            "departureTime": "23:35",
+                            "destinationTime": "06:25",
+                            "destinationDateOffset": 1,
+                            "destinationDate": "2021-04-16"
+                        },
+                        {
+                            "segmentNumber": "4",
+                            "airline": "SA",
+                            "flightNumber": "7416",
+                            "bookingClass": "Y",
+                            "departureDateRaw": "16APR",
+                            "departureAirport": "IAD",
+                            "destinationAirport": "LAX",
+                            "segmentStatus": "HK1",
+                            "departureTimeRaw": "833A",
+                            "destinationTimeRaw": "1112A",
+                            "destinationDateOffsetToken": "",
+                            "departureDayOfWeekRaw": "MO",
+                            "destinationDayOfWeekRaw": "",
+                            "segmentMarriageId": "",
+                            "operatedByString": null,
+                            "additionalInfoLines": [],
+                            "departureDayOfWeek": 1,
+                            "departureDate": "2021-04-16",
+                            "departureTime": "08:33",
+                            "destinationTime": "11:12",
+                            "destinationDateOffset": 0,
+                            "destinationDate": "2021-04-16"
+                        }
+                    ]
+                }
+            };
+
+            assert.deepEqual(lib.parsePriceQuoteItinerary('galileo', '2020-08-30', dump), result);
+        });
+
         it('parse Galileo itinerary with missing space in the first line', () => {
             const dump = [
                 '1. DL 9602 I  15SEP ORDAMS SS1   400P # 645A O          TU  1',
