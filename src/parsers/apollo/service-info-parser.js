@@ -115,7 +115,7 @@ class ServiceInfoParser {
             }
         });
 
-        return writer.getData();
+        return {segments: writer.getData()};
     }
 
     static parsePlaneChangeLine(line) {
