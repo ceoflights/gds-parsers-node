@@ -1,9 +1,8 @@
 "use strict";
 
 const assert = require('assert');
-const root = require('app-root-path');
 
-const lib = require.main.require(`${root}/index`);
+const lib = require.main.require(`../../../index`);
 
 describe('Sabre ServiceInfoParser', () => {
     it('parse Sabre VI* dump', () => {

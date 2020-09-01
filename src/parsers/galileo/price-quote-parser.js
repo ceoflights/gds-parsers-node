@@ -1,7 +1,6 @@
 "use strict";
 
-const root = require('app-root-path');
-const apolloParser = require(`${root}/src/parsers/apollo/price-quote-parser`);
+const apolloParser = require(`../../parsers/apollo/price-quote-parser`);
 
 class PriceQuoteParser {
     static parse(dump, baseDate) {

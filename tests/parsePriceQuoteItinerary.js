@@ -1,7 +1,6 @@
 "use strict";
 
-const root = require('app-root-path');
-const lib = require(`${root}/index`);
+const lib = require(`../index`);
 
 const assert = require('assert');
 

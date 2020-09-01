@@ -1,7 +1,6 @@
 "use strict";
 
-const root = require('app-root-path');
-const helpers = require(`${root}/src/helpers`);
+const helpers = require(`../../helpers`);
 
 class ServiceInfoParserDataWriter {
     _segments = [];
