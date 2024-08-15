@@ -78,6 +78,7 @@ class PriceQuoteParser {
             U: 'departureDayOfWeekRaw',
             I: 'destinationDayOfWeekRaw',
             M: 'segmentMarriageId',
+            E: 'ticket',
         };
 
         let result = null;
@@ -89,7 +90,7 @@ class PriceQuoteParser {
         } else {
             // Apollo
             //                                     ' 1 CZ 328T 21APR LAXCAN HK1  1150P  540A2*      TH/SA   E  1
-            result = helpers.splitByPosition(line, 'NN AAFFFFB DDDDD CCCVVV SSS  TTTTT XXXXXP       UU II      M', names, true);
+            result = helpers.splitByPosition(line, 'NN AAFFFFB DDDDD CCCVVV SSS  TTTTT XXXXXP       UU II   E  M', names, true);
         }
 
 

@@ -112,6 +112,11 @@ class PriceQuoteParser {
 
             result.destinationDate = helpers.convertToFullDateInFuture(helpers.parseGdsPartialDate(result.destinationDateRaw), baseDate);
 
+            const last2 = line.slice(-2);
+            if (last2 === '/E') {
+                result.ticket = 'E';
+            }
+
             return result;
         } else {
             return null;
