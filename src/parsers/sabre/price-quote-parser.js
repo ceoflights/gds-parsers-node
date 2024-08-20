@@ -106,7 +106,7 @@ class PriceQuoteParser {
 
             if (destinationDate !== null) {
                 result.destinationDateRaw = remainderTokens[0];
-                if (remainderTokens.length > 1 && /^[\d]{1}$/.test(remainderTokens[1])) {
+                if (remainderTokens.length > 1 && /^[A-Z\d]{1}$/.test(remainderTokens[1])) {
                     result.destinationDayOfWeekRaw = remainderTokens[1];
                     result.destinationDayOfWeek = helpers.parseSabreDayOfWeek(result.destinationDayOfWeekRaw);
                 }
