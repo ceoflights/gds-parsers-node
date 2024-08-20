@@ -75,6 +75,7 @@ class PriceQuoteParser {
             T: 'departureTimeRaw',
             X: 'destinationTimeRaw',
             P: 'destinationDateOffsetToken',
+            R: 'destinationDateOffsetStar',
             U: 'departureDayOfWeekRaw',
             I: 'destinationDayOfWeekRaw',
             M: 'segmentMarriageId',
@@ -90,7 +91,7 @@ class PriceQuoteParser {
         } else {
             // Apollo
             //                                     ' 1 CZ 328T 21APR LAXCAN HK1  1150P  540A2*      TH/SA   E  1
-            result = helpers.splitByPosition(line, 'NN AAFFFFB DDDDD CCCVVV SSS  TTTTT XXXXXP       UU II   E  M', names, true);
+            result = helpers.splitByPosition(line, 'NN AAFFFFB DDDDD CCCVVV SSS  TTTTT XXXXXPR      UU II   E  M', names, true);
         }
 
 
@@ -108,7 +109,7 @@ class PriceQuoteParser {
             result.departureDate = helpers.convertToFullDateInFuture(helpers.parseGdsPartialDate(result.departureDateRaw), baseDate);
             result.departureTime = helpers.parseGdsTime(result.departureTimeRaw);
             result.destinationTime = helpers.parseGdsTime(result.destinationTimeRaw);
-            result.destinationDateOffset = helpers.decodeDayOffset(result.destinationDateOffsetToken);
+            result.destinationDateOffset = helpers.decodeDayOffset(result.destinationDateOffsetToken[0]);
             result.destinationDate = moment(result.departureDate, 'YYYY-MM-DD').add(result.destinationDateOffset, 'days').format('YYYY-MM-DD');
 
             return result;
